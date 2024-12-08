@@ -1,12 +1,11 @@
-package view;
+package view.guest;
 
-import model.GuestDAO;
+import model.dao.GuestDAO;
 
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Date;
 import java.sql.SQLException;
-import java.util.List;
 
 public class GuestGUI extends JFrame {
     private JButton addBookingButton;
@@ -38,8 +37,8 @@ public class GuestGUI extends JFrame {
         add(exitButton);
 
         addBookingButton.addActionListener(e -> addBooking());
-        viewAvailableRoomsButton.addActionListener(e -> viewAvailableRooms());
-        viewMyBookingsButton.addActionListener(e -> viewMyBookings());
+//        viewAvailableRoomsButton.addActionListener(e -> viewAvailableRooms());
+//        viewMyBookingsButton.addActionListener(e -> viewMyBookings());
         cancelBookingButton.addActionListener(e -> cancelBooking());
         exitButton.addActionListener(e -> dispose());
 
@@ -68,7 +67,7 @@ public class GuestGUI extends JFrame {
             if (endDateStr == null) return;
             Date endDate = Date.valueOf(endDateStr);
 
-            guestDAO.addNewBooking(bookingId, guestId, roomId, startDate, endDate);
+            guestDAO.addNewBooking(guestId, roomId, startDate, endDate);
             JOptionPane.showMessageDialog(this, "Booking requested successfully!");
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Invalid number format.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -79,7 +78,7 @@ public class GuestGUI extends JFrame {
         }
     }
 
-    private void viewAvailableRooms() {
+   /* private void viewAvailableRooms() {
         try {
             String startDateStr = JOptionPane.showInputDialog(this, "Enter Start Date (YYYY-MM-DD):");
             if (startDateStr == null) return;
@@ -127,7 +126,7 @@ public class GuestGUI extends JFrame {
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
+    }*/
 
     private void cancelBooking() {
         try {

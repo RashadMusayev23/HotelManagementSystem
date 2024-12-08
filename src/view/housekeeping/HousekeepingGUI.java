@@ -1,6 +1,6 @@
-package view;
+package view.housekeeping;
 
-import model.HousekeepingDAO;
+import model.dao.HousekeepingDAO;
 
 import javax.swing.*;
 import java.awt.*;

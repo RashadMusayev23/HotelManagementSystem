@@ -1,6 +1,6 @@
-package view;
+package view.receptionist;
 
-import model.ReceptionistDAO;
+import model.dao.ReceptionistDAO;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,7 +1,12 @@
 package view;
 
-import controller.AdminController;
-import model.AdminDAO;
+import controller.GuestController;
+import model.dao.GuestDAO;
+import view.admin.AdminGUI;
+import view.guest.GuestGUI;
+import view.guest.GuestMenuView;
+import view.housekeeping.HousekeepingGUI;
+import view.receptionist.ReceptionistGUI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,9 +60,12 @@ public class MainGUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-//            AdminMainView.setDefaultLookAndFeelDecorated(true);
-            AdminMainView main = new AdminMainView(new AdminController(new AdminDAO()));
+            GuestMenuView main = new GuestMenuView(new GuestController(new GuestDAO()));
             main.setVisible(true);
+//            AdminMainView main = new AdminMainView(new AdminController(new AdminDAO()));
+//            main.setVisible(true);
+//            MainGUI main = new MainGUI();
+//            main.setVisible(true);
         });
     }
 }

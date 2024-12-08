@@ -1,6 +1,8 @@
-package model;
+package model.dao;
 
 import db.DBUtil;
+import model.Booking;
+
 import java.sql.*;
 
 public class BookingDAO {

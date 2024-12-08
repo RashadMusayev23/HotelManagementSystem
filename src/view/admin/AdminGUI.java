@@ -1,6 +1,6 @@
-package view;
+package view.admin;
 
-import model.AdminDAO;
+import model.dao.AdminDAO;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,7 +1,7 @@
 package controller;
 
-import model.AdminDAO;
-import view.AdminAddRoomView;
+import model.dao.AdminDAO;
+import view.admin.AdminAddRoomView;
 
 import javax.swing.*;
 import java.util.List;
