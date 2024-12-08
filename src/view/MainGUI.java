@@ -1,5 +1,8 @@
 package view;
 
+import controller.AdminController;
+import model.AdminDAO;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -52,7 +55,8 @@ public class MainGUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            MainGUI main = new MainGUI();
+//            AdminMainView.setDefaultLookAndFeelDecorated(true);
+            AdminMainView main = new AdminMainView(new AdminController(new AdminDAO()));
             main.setVisible(true);
         });
     }

@@ -7,6 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AdminDAO {
+
+    // Get list of (hotel_id, hotel_name) to populate the comboBox
+    public List<HotelInfo> getHotels() throws SQLException {
+        List<HotelInfo> hotels = new ArrayList<>();
+        String sql = "SELECT hotel_id, hotel_name FROM Hotel";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                hotels.add(new HotelInfo(rs.getInt("hotel_id"), rs.getString("hotel_name")));
+            }
+        }
+        return hotels;
+    }
+
     // Add Room
     public void addRoom(String roomName, String roomType, int maxCapacity, String status, int hotelId) throws SQLException {
         String sql = "INSERT INTO Room (room_id, room_name, room_type, max_capacity, status, hotel_id) VALUES (NULL, ?, ?, ?, ?, ?)";
@@ -19,6 +34,20 @@ public class AdminDAO {
             pstmt.setInt(5, hotelId);
             pstmt.executeUpdate();
         }
+    }
+
+    // A small data holder class for hotels
+    public static class HotelInfo {
+        private int hotelId;
+        private String hotelName;
+        public HotelInfo(int hotelId, String hotelName) {
+            this.hotelId = hotelId;
+            this.hotelName = hotelName;
+        }
+        public int getHotelId() { return hotelId; }
+        public String getHotelName() { return hotelName; }
+        @Override
+        public String toString() { return hotelName; } // important for comboBox display
     }
 
     // Delete Room

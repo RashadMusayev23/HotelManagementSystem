@@ -1,15 +1,15 @@
 CREATE TABLE Hotel
 (
-    hotel_id     INT PRIMARY KEY,
+    hotel_id     INT AUTO_INCREMENT PRIMARY KEY,
     hotel_name   VARCHAR(100) NOT NULL,
     location     VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20)  NOT NULL,
-    room_count   INT          NOT NULL,
+    room_count   INT NOT NULL
 );
 
 CREATE TABLE User
 (
-    user_id  INT PRIMARY KEY,
+    user_id  INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
@@ -40,7 +40,7 @@ CREATE TABLE Guest
 
 CREATE TABLE Room
 (
-    room_id      INT PRIMARY KEY,
+    room_id      INT AUTO_INCREMENT PRIMARY KEY,
     room_name    VARCHAR(100) NOT NULL UNIQUE,
     room_type    VARCHAR(50)  NOT NULL,
     max_capacity INT          NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE Room
 
 CREATE TABLE Booking
 (
-    booking_id     INT PRIMARY KEY,
+    booking_id     INT AUTO_INCREMENT PRIMARY KEY,
     guest_id       INT         NOT NULL,
     room_id        INT         NOT NULL,
     start_date     DATE        NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE Booking
 
 CREATE TABLE Payment
 (
-    payment_id     INT PRIMARY KEY,
+    payment_id     INT AUTO_INCREMENT PRIMARY KEY,
     booking_id     INT            NOT NULL,
     amount         DECIMAL(10, 2) NOT NULL,
     payment_date   DATE           NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE Payment
 
 CREATE TABLE Housekeeping
 (
-    housekeeping_id INT PRIMARY KEY,
+    housekeeping_id INT AUTO_INCREMENT PRIMARY KEY,
     room_id         INT         NOT NULL,
     cleaned_status  VARCHAR(50) NOT NULL,
     schedule_date   DATE        NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE Housekeeping
 
 CREATE TABLE ResidesAt
 (
-    resides_id     INT PRIMARY KEY,
+    resides_id     INT AUTO_INCREMENT PRIMARY KEY,
     guest_id       INT  NOT NULL,
     hotel_id       INT  NOT NULL,
     check_in_date  DATE NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE ResidesAt
 
 CREATE TABLE WorksAt
 (
-    works_at_id INT PRIMARY KEY,
+    works_at_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id     INT NOT NULL,
     hotel_id    INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User (user_id),
