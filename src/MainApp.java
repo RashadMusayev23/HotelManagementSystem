@@ -1,18 +1,16 @@
-import model.HotelDAO;
-import view.HotelView;
-import controller.HotelController;
+import view.MenuView;
+import controller.MenuController;
+import model.BookingDAO;
+import model.RoomDAO;
 
 public class MainApp {
     public static void main(String[] args) {
-        // Database connection details
-        String url = "jdbc:mysql://localhost:3306/hotel_management";
-        String user = "root";
-        String password = "mazeppa1881";
-
-        HotelDAO hotelDAO = new HotelDAO(url, user, password);
-        HotelView view = new HotelView();
-        HotelController controller = new HotelController(view, hotelDAO);
-
-        view.display(); // Show the GUI
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            MenuView view = new MenuView();
+            BookingDAO bookingDAO = new BookingDAO();
+            RoomDAO roomDAO = new RoomDAO();
+            new MenuController(view, bookingDAO, roomDAO);
+            view.display();
+        });
     }
 }
