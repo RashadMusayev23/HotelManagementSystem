@@ -78,4 +78,9 @@ public class Room {
     public void setDiscount(double discount) {
         this.discount = discount;
     }
+
+    @Override
+    public String toString() {
+        return roomName + " (" + roomType + ")";
+    }
 }

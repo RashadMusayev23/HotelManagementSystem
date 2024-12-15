@@ -7,27 +7,35 @@ import java.awt.*;
 
 public class AdminMainView extends JFrame {
     private JButton addRoomMainButton;
-    private AdminController adminController;
+    private JButton deleteRoomButton;
+    private JButton manageRoomStatusButton;
+    private JButton exitButton;
 
     public AdminMainView(AdminController adminController) {
         super("Administrator Dashboard");
-        this.adminController = adminController;
 
-        // Set layout manager, e.g., BorderLayout or BoxLayout
-        setLayout(new FlowLayout());
+        // Set BoxLayout to align buttons vertically
+        setLayout(new GridLayout(5,1,10,10));
 
         // Initialize and configure UI components
         addRoomMainButton = new JButton("Add Room");
+        deleteRoomButton = new JButton("Delete Room");
+        manageRoomStatusButton = new JButton("Manage Room Status");
+        exitButton = new JButton("Exit");
 
-        // Add action listener using the adminController to open the Add Room dialog
+        // Add action listener using the adminController to open respective dialogs
         addRoomMainButton.addActionListener(e -> adminController.showAddRoomDialog(this));
+        deleteRoomButton.addActionListener(e -> adminController.showDeleteRoomDialog(this));
+        manageRoomStatusButton.addActionListener(e -> adminController.showManageRoomStatusDialog(this));
+        exitButton.addActionListener(e -> System.exit(0));
 
-        // Add the button to the frame’s content pane or panel
         add(addRoomMainButton);
+        add(deleteRoomButton);
+        add(manageRoomStatusButton);
+        add(exitButton);
 
-        // Set basic frame configurations
-        setSize(400, 300);
+        pack();
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 }

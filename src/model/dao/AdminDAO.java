@@ -1,6 +1,7 @@
 package model.dao;
 
 import db.DBUtil;
+import model.Room;
 import model.info.HotelInfo;
 
 import java.sql.*;
@@ -23,6 +24,56 @@ public class AdminDAO {
         return hotels;
     }
 
+    // Fetch all rooms
+    public List<Room> getAllRooms() throws SQLException {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT * FROM Room";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                rooms.add(new Room(
+                        rs.getInt("room_id"),
+                        rs.getString("room_name"),
+                        rs.getString("room_type"),
+                        rs.getInt("max_capacity"),
+                        rs.getString("status"),
+                        rs.getInt("hotel_id"),
+                        rs.getDouble("rate"),
+                        rs.getDouble("discount")
+                ));
+            }
+        }
+        return rooms;
+    }
+
+    public boolean hasBookings(int roomId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Booking WHERE room_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roomId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // Returns true if there are bookings
+                }
+            }
+        }
+        return false;
+    }
+
+    public void deleteRoom(int roomId) throws SQLException {
+        if (hasBookings(roomId)) {
+            throw new SQLException("Cannot delete the room because it has associated bookings.");
+        }
+        String sql = "DELETE FROM Room WHERE room_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, roomId);
+            stmt.executeUpdate();
+        }
+    }
+
     // Add Room
     public void addRoom(String roomName, String roomType, int maxCapacity, String status, int hotelId) throws SQLException {
         String sql = "INSERT INTO Room (room_id, room_name, room_type, max_capacity, status, hotel_id) VALUES (NULL, ?, ?, ?, ?, ?)";
@@ -34,6 +85,17 @@ public class AdminDAO {
             pstmt.setString(4, status);
             pstmt.setInt(5, hotelId);
             pstmt.executeUpdate();
+        }
+    }
+
+    // Update room status
+    public void updateRoomStatus(int roomId, String newStatus) throws SQLException {
+        String sql = "UPDATE Room SET status = ? WHERE room_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, roomId);
+            stmt.executeUpdate();
         }
     }
 
