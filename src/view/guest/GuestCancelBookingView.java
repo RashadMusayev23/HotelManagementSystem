@@ -1,7 +1,7 @@
 package view.guest;
 
-import model.BookingInfo;
-import model.GuestInfo;
+import model.info.BookingInfo;
+import model.info.GuestInfo;
 
 import javax.swing.*;
 import java.awt.*;

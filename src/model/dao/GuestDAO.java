@@ -1,9 +1,9 @@
 package model.dao;
 
 import db.DBUtil;
-import model.BookingInfo;
-import model.GuestInfo;
-import model.RoomInfo;
+import model.info.BookingInfo;
+import model.info.GuestInfo;
+import model.info.RoomInfo;
 
 import java.sql.*;
 import java.util.ArrayList;

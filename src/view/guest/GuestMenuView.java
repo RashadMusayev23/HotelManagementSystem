@@ -5,7 +5,6 @@ import controller.GuestController;
 import javax.swing.*;
 import java.awt.*;
 
-// GuestMenuView.java (example sketch)
 public class GuestMenuView extends JFrame {
     private JButton addBookingButton;
     private JButton viewAvailableButton;
@@ -13,11 +12,8 @@ public class GuestMenuView extends JFrame {
     private JButton cancelBookingButton;
     private JButton exitButton;
 
-    private GuestController guestController;
-
     public GuestMenuView(GuestController guestController) {
         super("Guest Menu");
-        this.guestController = guestController;
 
         setLayout(new GridLayout(5,1,10,10));
 

@@ -1,5 +1,5 @@
-// RoomInfo.java (in dao package)
-package model;
+package model.info;
+
 public class RoomInfo {
     private int roomId;
     private String roomName;
@@ -14,11 +14,27 @@ public class RoomInfo {
         this.maxCapacity = maxCapacity;
         this.status = status;
     }
-    public int getRoomId() { return roomId; }
-    public String getRoomName() { return roomName; }
-    public String getRoomType() { return roomType; }
-    public int getMaxCapacity() { return maxCapacity; }
-    public String getStatus() { return status; }
+
+    public int getRoomId() {
+        return roomId;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public int getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
         return roomName + " (" + roomType + ")";

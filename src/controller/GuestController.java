@@ -1,8 +1,8 @@
 package controller;
 
-import model.BookingInfo;
-import model.GuestInfo;
-import model.RoomInfo;
+import model.info.BookingInfo;
+import model.info.GuestInfo;
+import model.info.RoomInfo;
 import model.dao.GuestDAO;
 import view.guest.GuestAddBookingView;
 import view.guest.GuestCancelBookingView;
@@ -133,7 +133,7 @@ public class GuestController {
             return;
         }
 
-        dialog.getLoadButton().addActionListener(e -> {
+        dialog.getLoadButton().addActionListener(_ -> {
             try {
                 GuestInfo selectedGuest = dialog.getSelectedGuest();
                 if (selectedGuest == null) {

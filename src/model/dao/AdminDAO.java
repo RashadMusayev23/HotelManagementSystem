@@ -1,6 +1,7 @@
 package model.dao;
 
 import db.DBUtil;
+import model.info.HotelInfo;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -34,20 +35,6 @@ public class AdminDAO {
             pstmt.setInt(5, hotelId);
             pstmt.executeUpdate();
         }
-    }
-
-    // A small data holder class for hotels
-    public static class HotelInfo {
-        private int hotelId;
-        private String hotelName;
-        public HotelInfo(int hotelId, String hotelName) {
-            this.hotelId = hotelId;
-            this.hotelName = hotelName;
-        }
-        public int getHotelId() { return hotelId; }
-        public String getHotelName() { return hotelName; }
-        @Override
-        public String toString() { return hotelName; } // important for comboBox display
     }
 
     // Delete Room

@@ -21,16 +21,49 @@ public class Booking {
         this.status = status;
     }
 
-    public int getBookingId() { return bookingId; }
-    public int getGuestId() { return guestId; }
-    public int getRoomId() { return roomId; }
-    public Date getStartDate() { return startDate; }
-    public Date getEndDate() { return endDate; }
-    public String getPaymentStatus() { return paymentStatus; }
-    public String getStatus() { return status; }
+    // Getters
+    public int getBookingId() {
+        return bookingId;
+    }
 
-    public void setStartDate(Date startDate) { this.startDate = startDate; }
-    public void setEndDate(Date endDate) { this.endDate = endDate; }
-    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
-    public void setStatus(String status) { this.status = status; }
+    public int getGuestId() {
+        return guestId;
+    }
+
+    public int getRoomId() {
+        return roomId;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    // Setters
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

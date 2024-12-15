@@ -1,6 +1,6 @@
 package view.guest;
 
-import model.RoomInfo;
+import model.info.RoomInfo;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

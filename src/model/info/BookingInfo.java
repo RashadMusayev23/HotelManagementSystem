@@ -1,5 +1,4 @@
-// BookingInfo.java (in dao package)
-package model;
+package model.info;
 import java.sql.Date;
 
 public class BookingInfo {

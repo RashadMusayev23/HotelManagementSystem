@@ -1,6 +1,7 @@
 package controller;
 
 import model.dao.AdminDAO;
+import model.info.HotelInfo;
 import view.admin.AdminAddRoomView;
 
 import javax.swing.*;
@@ -18,7 +19,7 @@ public class AdminController {
         AdminAddRoomView dialog = new AdminAddRoomView(parent);
         try {
             // Populate hotel comboBox from DB
-            List<AdminDAO.HotelInfo> hotels = adminDAO.getHotels();
+            List<HotelInfo> hotels = adminDAO.getHotels();
             if (hotels.isEmpty()) {
                 JOptionPane.showMessageDialog(parent, "No hotels available to associate with the room.", "Warning", JOptionPane.WARNING_MESSAGE);
                 return; // Cannot add room without a hotel
@@ -45,7 +46,7 @@ public class AdminController {
                 JOptionPane.showMessageDialog(dialog, "Please select a Hotel.", "Validation Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            int hotelId = ((AdminDAO.HotelInfo) selectedHotel).getHotelId();
+            int hotelId = ((HotelInfo) selectedHotel).getHotelId();
 
             // Attempt to add room
             try {
