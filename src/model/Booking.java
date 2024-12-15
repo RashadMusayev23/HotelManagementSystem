@@ -66,4 +66,10 @@ public class Booking {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "Booking ID: " + bookingId + ", Room ID: " + roomId + ", Guest ID: " + guestId +
+                ", Start: " + startDate + ", End: " + endDate + ", Status: " + status;
+    }
 }

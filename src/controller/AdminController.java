@@ -1,13 +1,10 @@
 package controller;
 
-import model.Room;
+import model.*;
 import model.dao.AdminDAO;
 import model.info.HotelInfo;
 import model.info.UserInfo;
-import view.admin.AdminAddRoomView;
-import view.admin.AdminAddUserView;
-import view.admin.AdminManageRoomView;
-import view.admin.AdminViewUserAccountsView;
+import view.admin.*;
 
 import javax.swing.*;
 import java.sql.SQLException;
@@ -177,5 +174,166 @@ public class AdminController {
 
         dialog.getCloseButton().addActionListener(e -> dialog.dispose());
         dialog.setVisible(true);
+    }
+
+    public void showViewAllBookingRecords(JFrame parent) {
+        AdminViewRecordsView dialog = new AdminViewRecordsView(parent, "View All Booking Records");
+
+        try {
+            List<Booking> bookings = adminDAO.getAllBookingRecords();
+            dialog.updateTable(prepareBookingData(bookings), new String[]{"Booking ID", "Guest ID", "Room ID", "Start Date", "End Date", "Payment Status", "Status"});
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error loading booking records: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        dialog.setVisible(true);
+    }
+
+    public void showViewAllHousekeepingRecords(JFrame parent) {
+        AdminViewRecordsView dialog = new AdminViewRecordsView(parent, "View All Housekeeping Records");
+
+        try {
+            List<Housekeeping> records = adminDAO.getAllHousekeepingRecords();
+            dialog.updateTable(prepareHousekeepingData(records), new String[]{"Record ID", "Room ID", "Cleaned Status", "Schedule Date", "Housekeeper ID"});
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error loading housekeeping records: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        dialog.setVisible(true);
+    }
+
+    // Utility methods to prepare data for JTable
+    private Object[][] prepareBookingData(List<Booking> bookings) {
+        Object[][] data = new Object[bookings.size()][7];
+        for (int i = 0; i < bookings.size(); i++) {
+            Booking b = bookings.get(i);
+            data[i] = new Object[]{b.getBookingId(), b.getGuestId(), b.getRoomId(), b.getStartDate(), b.getEndDate(), b.getPaymentStatus(), b.getStatus()};
+        }
+        return data;
+    }
+
+    private Object[][] prepareHousekeepingData(List<Housekeeping> records) {
+        Object[][] data = new Object[records.size()][5];
+        for (int i = 0; i < records.size(); i++) {
+            Housekeeping h = records.get(i);
+            data[i] = new Object[]{h.getHousekeepingId(), h.getRoomId(), h.getCleanedStatus(), h.getScheduleDate(), h.getHousekeeperId()};
+        }
+        return data;
+    }
+
+    public void showMostBookedRoomTypes(JFrame parent) {
+        AdminViewRecordsView dialog = new AdminViewRecordsView(parent, "Most Booked Room Types");
+
+        try {
+            List<RoomTypeCount> roomTypes = adminDAO.getMostBookedRoomTypes();
+            dialog.updateTable(prepareRoomTypeData(roomTypes), new String[]{"Room Type", "Bookings"});
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error loading room types: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        dialog.setVisible(true);
+    }
+
+    public void showAllEmployeesWithRole(JFrame parent) {
+        AdminViewRecordsView dialog = new AdminViewRecordsView(parent, "All Employees with Their Role");
+
+        try {
+            List<Employee> employees = adminDAO.getAllEmployeesWithRole();
+            dialog.updateTable(prepareEmployeeData(employees), new String[]{"User ID", "Username", "Role"});
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error loading employees: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        dialog.setVisible(true);
+    }
+
+    public void showCancelBookingIfNoPaymentDialog(JFrame parent) {
+        AdminCancelBookingView dialog = new AdminCancelBookingView(parent);
+
+        try {
+            List<Booking> pendingBookings = adminDAO.getBookingsWithNoPayment();
+            dialog.setBookings(pendingBookings.toArray());
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error loading pending bookings: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        dialog.getCancelButton().addActionListener(e -> {
+            try {
+                Booking selectedBooking = dialog.getSelectedBooking();
+                if (selectedBooking == null) {
+                    JOptionPane.showMessageDialog(dialog, "Please select a booking to cancel.", "Warning", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                adminDAO.cancelBooking(selectedBooking.getBookingId());
+                JOptionPane.showMessageDialog(dialog, "Booking cancelled successfully!");
+                dialog.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        dialog.getCloseButton().addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+
+    // Utility methods for table preparation
+    private Object[][] prepareRoomTypeData(List<RoomTypeCount> roomTypes) {
+        Object[][] data = new Object[roomTypes.size()][2];
+        for (int i = 0; i < roomTypes.size(); i++) {
+            RoomTypeCount r = roomTypes.get(i);
+            data[i] = new Object[]{r.getRoomType(), r.getCount()};
+        }
+        return data;
+    }
+
+    private Object[][] prepareEmployeeData(List<Employee> employees) {
+        Object[][] data = new Object[employees.size()][3];
+        for (int i = 0; i < employees.size(); i++) {
+            Employee e = employees.get(i);
+            data[i] = new Object[]{e.getUserId(), e.getUsername(), e.getRole()};
+        }
+        return data;
+    }
+
+    public void showGenerateRevenueReport(JFrame parent) {
+        AdminViewRecordsView dialog = new AdminViewRecordsView(parent, "Revenue Report");
+
+        String[] options = {"By Hotel", "By Room Type"};
+        String choice = (String) JOptionPane.showInputDialog(parent,
+                "Generate Revenue Report:", "Choose Option",
+                JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+        if (choice == null) {
+            return; // User canceled
+        }
+
+        try {
+            List<RevenueReport> report;
+            if (choice.equals("By Hotel")) {
+                report = adminDAO.getRevenueByHotel();
+                dialog.updateTable(prepareRevenueByHotelData(report), new String[]{"Hotel Name", "Total Revenue"});
+            } else {
+                report = adminDAO.getRevenueByRoomType();
+                dialog.updateTable(prepareRevenueByRoomTypeData(report), new String[]{"Room Type", "Total Revenue"});
+            }
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error generating report: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private Object[][] prepareRevenueByHotelData(List<RevenueReport> reports) {
+        Object[][] data = new Object[reports.size()][2];
+        for (int i = 0; i < reports.size(); i++) {
+            data[i][0] = reports.get(i).getCategory();
+            data[i][1] = reports.get(i).getTotalRevenue();
+        }
+        return data;
+    }
+
+    private Object[][] prepareRevenueByRoomTypeData(List<RevenueReport> reports) {
+        return prepareRevenueByHotelData(reports); // Same logic applies
     }
 }

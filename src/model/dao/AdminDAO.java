@@ -1,7 +1,7 @@
 package model.dao;
 
 import db.DBUtil;
-import model.Room;
+import model.*;
 import model.info.HotelInfo;
 import model.info.UserInfo;
 
@@ -315,5 +315,179 @@ public class AdminDAO {
             }
         }
         return users;
+    }
+
+    public List<Booking> getAllBookingRecords() throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT * FROM Booking";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                bookings.add(new Booking(
+                        rs.getInt("booking_id"),
+                        rs.getInt("guest_id"),
+                        rs.getInt("room_id"),
+                        rs.getDate("start_date"),
+                        rs.getDate("end_date"),
+                        rs.getString("payment_status"),
+                        rs.getString("status")
+                ));
+            }
+        }
+        return bookings;
+    }
+
+    public List<Housekeeping> getAllHousekeepingRecords() throws SQLException {
+        List<Housekeeping> records = new ArrayList<>();
+        String sql = "SELECT * FROM Housekeeping";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                records.add(new Housekeeping(
+                        rs.getInt("housekeeping_id"),
+                        rs.getInt("room_id"),
+                        rs.getString("cleaned_status"),
+                        rs.getDate("schedule_date"),
+                        rs.getInt("housekeeper_id")
+                ));
+            }
+        }
+        return records;
+    }
+
+    public List<RoomTypeCount> getMostBookedRoomTypes() throws SQLException {
+        List<RoomTypeCount> roomTypes = new ArrayList<>();
+        String sql = "SELECT r.room_type, COUNT(*) AS booking_count " +
+                "FROM Booking b " +
+                "JOIN Room r ON b.room_id = r.room_id " +
+                "GROUP BY r.room_type " +
+                "ORDER BY booking_count DESC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                roomTypes.add(new RoomTypeCount(rs.getString("room_type"), rs.getInt("booking_count")));
+            }
+        }
+        return roomTypes;
+    }
+
+    public List<Employee> getAllEmployeesWithRole() throws SQLException {
+        List<Employee> employees = new ArrayList<>();
+        String sql = "SELECT u.user_id, u.username, " +
+                "CASE " +
+                "WHEN a.user_id IS NOT NULL THEN 'Administrator' " +
+                "WHEN r.user_id IS NOT NULL THEN 'Receptionist' " +
+                "WHEN h.user_id IS NOT NULL THEN 'Housekeeper' " +
+                "WHEN g.user_id IS NOT NULL THEN 'Guest' " +
+                "END AS role " +
+                "FROM User u " +
+                "LEFT JOIN Administrator a ON u.user_id = a.user_id " +
+                "LEFT JOIN Receptionist r ON u.user_id = r.user_id " +
+                "LEFT JOIN Housekeeper h ON u.user_id = h.user_id " +
+                "LEFT JOIN Guest g ON u.user_id = g.user_id";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                employees.add(new Employee(rs.getInt("user_id"), rs.getString("username"), rs.getString("role")));
+            }
+        }
+        return employees;
+    }
+
+    public List<Booking> getBookingsWithNoPayment() throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT * FROM Booking WHERE payment_status = 'Pending'";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                bookings.add(new Booking(
+                        rs.getInt("booking_id"),
+                        rs.getInt("guest_id"),
+                        rs.getInt("room_id"),
+                        rs.getDate("start_date"),
+                        rs.getDate("end_date"),
+                        rs.getString("payment_status"),
+                        rs.getString("status")
+                ));
+            }
+        }
+        return bookings;
+    }
+
+    public void cancelBooking(int bookingId) throws SQLException {
+        String deletePaymentsSQL = "DELETE FROM Payment WHERE booking_id = ?";
+        String deleteBookingSQL = "DELETE FROM Booking WHERE booking_id = ?";
+
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+
+            // Delete associated payments first
+            try (PreparedStatement stmt = conn.prepareStatement(deletePaymentsSQL)) {
+                stmt.setInt(1, bookingId);
+                stmt.executeUpdate();
+            }
+
+            // Delete the booking
+            try (PreparedStatement stmt = conn.prepareStatement(deleteBookingSQL)) {
+                stmt.setInt(1, bookingId);
+                stmt.executeUpdate();
+            }
+
+            conn.commit(); // Commit transaction
+        } catch (SQLException ex) {
+            throw new SQLException("Error canceling booking: " + ex.getMessage());
+        }
+    }
+
+    public List<RevenueReport> getRevenueByHotel() throws SQLException {
+        List<RevenueReport> report = new ArrayList<>();
+        String sql = "SELECT h.hotel_name, SUM(p.amount) AS total_revenue " +
+                "FROM Payment p " +
+                "JOIN Booking b ON p.booking_id = b.booking_id " +
+                "JOIN Room r ON b.room_id = r.room_id " +
+                "JOIN Hotel h ON r.hotel_id = h.hotel_id " +
+                "GROUP BY h.hotel_name";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                report.add(new RevenueReport(rs.getString("hotel_name"), rs.getDouble("total_revenue")));
+            }
+        }
+        return report;
+    }
+
+    public List<RevenueReport> getRevenueByRoomType() throws SQLException {
+        List<RevenueReport> report = new ArrayList<>();
+        String sql = "SELECT r.room_type, SUM(p.amount) AS total_revenue " +
+                "FROM Payment p " +
+                "JOIN Booking b ON p.booking_id = b.booking_id " +
+                "JOIN Room r ON b.room_id = r.room_id " +
+                "GROUP BY r.room_type";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                report.add(new RevenueReport(rs.getString("room_type"), rs.getDouble("total_revenue")));
+            }
+        }
+        return report;
     }
 }
