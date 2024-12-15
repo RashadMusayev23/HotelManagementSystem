@@ -1,10 +1,13 @@
 package view.guest;
 
+import model.BookingInfo;
+import model.GuestInfo;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class GuestCancelBookingView extends JDialog {
-    private JTextField guestIdField;
+    private JComboBox<Object> guestCombo;
     private JComboBox<Object> bookingCombo;
     private JButton loadButton;
     private JButton cancelBookingButton;
@@ -17,11 +20,12 @@ public class GuestCancelBookingView extends JDialog {
         gbc.insets=new Insets(10,10,10,10);
         gbc.fill=GridBagConstraints.HORIZONTAL;
 
+        // Guest Combo
         gbc.gridx=0; gbc.gridy=0;
-        add(new JLabel("Guest ID:"), gbc);
-        guestIdField = new JTextField(10);
+        add(new JLabel("Guest:"), gbc);
+        guestCombo = new JComboBox<>();
         gbc.gridx=1;
-        add(guestIdField, gbc);
+        add(guestCombo, gbc);
 
         loadButton = new JButton("Load Bookings");
         gbc.gridx=0; gbc.gridy=1; gbc.gridwidth=2;
@@ -46,8 +50,15 @@ public class GuestCancelBookingView extends JDialog {
         setLocationRelativeTo(parent);
     }
 
-    public int getGuestId() {
-        return Integer.parseInt(guestIdField.getText().trim());
+    public void setGuests(Object[] guests) {
+        guestCombo.removeAllItems();
+        for (Object g : guests) {
+            guestCombo.addItem(g);
+        }
+    }
+
+    public GuestInfo getSelectedGuest() {
+        return (GuestInfo) guestCombo.getSelectedItem();
     }
 
     public void setBookings(Object[] bookings) {
@@ -57,8 +68,8 @@ public class GuestCancelBookingView extends JDialog {
         }
     }
 
-    public Object getSelectedBooking() {
-        return bookingCombo.getSelectedItem();
+    public BookingInfo getSelectedBooking() {
+        return (BookingInfo) bookingCombo.getSelectedItem();
     }
 
     public JButton getLoadButton() { return loadButton; }

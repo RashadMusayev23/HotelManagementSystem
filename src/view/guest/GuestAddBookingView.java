@@ -2,15 +2,13 @@ package view.guest;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
+import java.util.Date;
 
 public class GuestAddBookingView extends JDialog {
-    private JTextField guestIdField;
+    private JComboBox<Object> guestCombo;
     private JComboBox<Object> roomCombo;
-    private JTextField startDateField;
-    private JTextField endDateField;
+    private JSpinner startDateSpinner;
+    private JSpinner endDateSpinner;
     private JButton addButton;
     private JButton cancelButton;
 
@@ -21,33 +19,33 @@ public class GuestAddBookingView extends JDialog {
         gbc.insets = new Insets(10,10,10,10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Guest ID
+        // Guest Combo
         gbc.gridx=0; gbc.gridy=0;
-        add(new JLabel("Guest ID:"), gbc);
-        guestIdField = new JTextField(10);
+        add(new JLabel("Guest:"), gbc);
+        guestCombo = new JComboBox<>();
         gbc.gridx=1;
-        add(guestIdField, gbc);
+        add(guestCombo, gbc);
 
-        // Room
+        // Room Combo
         gbc.gridx=0; gbc.gridy=1;
         add(new JLabel("Room:"), gbc);
         roomCombo = new JComboBox<>();
         gbc.gridx=1;
         add(roomCombo, gbc);
 
-        // Start Date
+        // Start Date Spinner
         gbc.gridx=0; gbc.gridy=2;
-        add(new JLabel("Start Date (YYYY-MM-DD):"), gbc);
-        startDateField = new JTextField(10);
+        add(new JLabel("Start Date:"), gbc);
+        startDateSpinner = createDateSpinner();
         gbc.gridx=1;
-        add(startDateField, gbc);
+        add(startDateSpinner, gbc);
 
-        // End Date
+        // End Date Spinner
         gbc.gridx=0; gbc.gridy=3;
-        add(new JLabel("End Date (YYYY-MM-DD):"), gbc);
-        endDateField = new JTextField(10);
+        add(new JLabel("End Date:"), gbc);
+        endDateSpinner = createDateSpinner();
         gbc.gridx=1;
-        add(endDateField, gbc);
+        add(endDateSpinner, gbc);
 
         // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -63,8 +61,21 @@ public class GuestAddBookingView extends JDialog {
         setLocationRelativeTo(parent);
     }
 
-    public int getGuestId() throws NumberFormatException {
-        return Integer.parseInt(guestIdField.getText().trim());
+    private JSpinner createDateSpinner() {
+        // Create a spinner with a date model, defaulting to today's date
+        SpinnerDateModel dateModel = new SpinnerDateModel(new Date(), null, null, java.util.Calendar.DAY_OF_MONTH);
+        JSpinner spinner = new JSpinner(dateModel);
+        // Optionally set date editor
+        JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "yyyy-MM-dd");
+        spinner.setEditor(editor);
+        return spinner;
+    }
+
+    public void setGuests(Object[] guests) {
+        guestCombo.removeAllItems();
+        for (Object g : guests) {
+            guestCombo.addItem(g);
+        }
     }
 
     public void setRooms(Object[] rooms) {
@@ -74,22 +85,22 @@ public class GuestAddBookingView extends JDialog {
         }
     }
 
+    public Object getSelectedGuest() {
+        return guestCombo.getSelectedItem();
+    }
+
     public Object getSelectedRoom() {
         return roomCombo.getSelectedItem();
     }
 
-    private Date parseDate(String dateStr) throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setLenient(false);
-        return new Date(sdf.parse(dateStr.trim()).getTime());
+    public java.sql.Date getSelectedStartDate() {
+        var utilDate = (java.util.Date) startDateSpinner.getValue();
+        return new java.sql.Date(utilDate.getTime());
     }
 
-    public Date getStartDate() throws ParseException {
-        return parseDate(startDateField.getText());
-    }
-
-    public Date getEndDate() throws ParseException {
-        return parseDate(endDateField.getText());
+    public java.sql.Date getSelectedEndDate() {
+        var utilDate = (java.util.Date) endDateSpinner.getValue();
+        return new java.sql.Date(utilDate.getTime());
     }
 
     public JButton getAddButton() { return addButton; }

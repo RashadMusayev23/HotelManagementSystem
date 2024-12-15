@@ -2,6 +2,7 @@ package model.dao;
 
 import db.DBUtil;
 import model.BookingInfo;
+import model.GuestInfo;
 import model.RoomInfo;
 
 import java.sql.*;
@@ -9,6 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuestDAO {
+
+    public List<GuestInfo> getAllGuests() throws SQLException {
+        String sql = "SELECT u.user_id, u.username FROM User u " +
+                "JOIN Guest g ON u.user_id = g.user_id";
+        List<GuestInfo> guests = new ArrayList<>();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                guests.add(new GuestInfo(rs.getInt("user_id"), rs.getString("username")));
+            }
+        }
+        return guests;
+    }
 
     // Add New Booking (Revised to not require booking_id if it's auto-increment)
     public void addNewBooking(int guestId, int roomId, Date startDate, Date endDate) throws SQLException {
@@ -25,7 +40,7 @@ public class GuestDAO {
     }
 
     // Get Available Rooms as RoomInfo objects
-    public List<RoomInfo> getAvailableRooms(Date startDate, Date endDate) throws SQLException {
+    public List<RoomInfo> getAvailableRooms(java.sql.Date startDate, java.sql.Date endDate) throws SQLException {
         String sql = 
             "SELECT r.room_id, r.room_name, r.room_type, r.max_capacity, r.status " +
             "FROM Room r " +

@@ -5,13 +5,11 @@ import model.RoomInfo;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.Date;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class GuestViewAvailableRoomsView extends JDialog {
-    private JTextField startDateField;
-    private JTextField endDateField;
+    private JSpinner startDateSpinner;
+    private JSpinner endDateSpinner;
     private JButton searchButton;
     private JButton closeButton;
     private JTable roomsTable;
@@ -24,19 +22,19 @@ public class GuestViewAvailableRoomsView extends JDialog {
         gbc.insets=new Insets(10,10,10,10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Start Date
+        // Start Date Spinner
         gbc.gridx=0; gbc.gridy=0;
-        add(new JLabel("Start Date (YYYY-MM-DD):"), gbc);
-        startDateField = new JTextField(10);
+        add(new JLabel("Start Date:"), gbc);
+        startDateSpinner = createDateSpinner();
         gbc.gridx=1;
-        add(startDateField, gbc);
+        add(startDateSpinner, gbc);
 
-        // End Date
+        // End Date Spinner
         gbc.gridx=0; gbc.gridy=1;
-        add(new JLabel("End Date (YYYY-MM-DD):"), gbc);
-        endDateField = new JTextField(10);
+        add(new JLabel("End Date:"), gbc);
+        endDateSpinner = createDateSpinner();
         gbc.gridx=1;
-        add(endDateField, gbc);
+        add(endDateSpinner, gbc);
 
         searchButton = new JButton("Search");
         closeButton = new JButton("Close");
@@ -48,9 +46,9 @@ public class GuestViewAvailableRoomsView extends JDialog {
         gbc.gridx=0; gbc.gridy=2; gbc.gridwidth=2;
         add(buttonPanel, gbc);
 
-        // Table
         tableModel = new DefaultTableModel(new String[]{"Room ID", "Room Name", "Type", "Max Capacity", "Status"},0);
         roomsTable = new JTable(tableModel);
+
         gbc.gridy=3; gbc.gridwidth=2;
         gbc.fill=GridBagConstraints.BOTH;
         gbc.weightx=1.0; gbc.weighty=1.0;
@@ -60,18 +58,22 @@ public class GuestViewAvailableRoomsView extends JDialog {
         setLocationRelativeTo(parent);
     }
 
-    private Date parseDate(String str) throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setLenient(false);
-        return new Date(sdf.parse(str.trim()).getTime());
+    private JSpinner createDateSpinner() {
+        SpinnerDateModel dateModel = new SpinnerDateModel(new Date(), null, null, java.util.Calendar.DAY_OF_MONTH);
+        JSpinner spinner = new JSpinner(dateModel);
+        JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "yyyy-MM-dd");
+        spinner.setEditor(editor);
+        return spinner;
     }
 
-    public Date getStartDate() throws ParseException {
-        return parseDate(startDateField.getText());
+    public java.sql.Date getStartDate() {
+        var utilDate = (java.util.Date) startDateSpinner.getValue();
+        return new java.sql.Date(utilDate.getTime());
     }
 
-    public Date getEndDate() throws ParseException {
-        return parseDate(endDateField.getText());
+    public java.sql.Date getEndDate() {
+        var utilDate = (java.util.Date) endDateSpinner.getValue();
+        return new java.sql.Date(utilDate.getTime());
     }
 
     public JButton getSearchButton() { return searchButton; }

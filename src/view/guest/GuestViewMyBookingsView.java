@@ -1,6 +1,7 @@
 package view.guest;
 
 import model.BookingInfo;
+import model.GuestInfo;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -8,7 +9,7 @@ import java.awt.*;
 import java.util.List;
 
 public class GuestViewMyBookingsView extends JDialog {
-    private JTextField guestIdField;
+    private JComboBox<Object> guestCombo;
     private JButton viewButton;
     private JButton closeButton;
     private JTable bookingsTable;
@@ -22,10 +23,10 @@ public class GuestViewMyBookingsView extends JDialog {
         gbc.fill=GridBagConstraints.HORIZONTAL;
 
         gbc.gridx=0; gbc.gridy=0;
-        add(new JLabel("Guest ID:"), gbc);
-        guestIdField = new JTextField(10);
+        add(new JLabel("Guest:"), gbc);
+        guestCombo = new JComboBox<>();
         gbc.gridx=1;
-        add(guestIdField, gbc);
+        add(guestCombo, gbc);
 
         viewButton = new JButton("View");
         closeButton = new JButton("Close");
@@ -49,8 +50,15 @@ public class GuestViewMyBookingsView extends JDialog {
         setLocationRelativeTo(parent);
     }
 
-    public int getGuestId() {
-        return Integer.parseInt(guestIdField.getText().trim());
+    public void setGuests(Object[] guests) {
+        guestCombo.removeAllItems();
+        for (Object g : guests) {
+            guestCombo.addItem(g);
+        }
+    }
+
+    public GuestInfo getSelectedGuest() {
+        return (GuestInfo) guestCombo.getSelectedItem();
     }
 
     public JButton getViewButton() { return viewButton; }
