@@ -3,6 +3,7 @@ package model.dao;
 import db.DBUtil;
 import model.Room;
 import model.info.HotelInfo;
+import model.info.UserInfo;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -122,31 +123,6 @@ public class AdminDAO {
         }
     }
 
-    // Add User Account (e.g. add a new Receptionist, Housekeeper)
-    public void addUserAccount(String username, String password, String userType) throws SQLException {
-        // Insert into User table and also into specific role table:
-        // For simplicity assume user_id is auto increment and then insert into the role table
-        String insertUser = "INSERT INTO User (user_id, username, password) VALUES (NULL, ?, ?)";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(insertUser, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            pstmt.executeUpdate();
-
-            try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    int userId = rs.getInt(1);
-                    String roleTable = capitalize(userType);
-                    String roleSQL = "INSERT INTO " + roleTable + " (user_id) VALUES (?)";
-                    try (PreparedStatement rolePstmt = conn.prepareStatement(roleSQL)) {
-                        rolePstmt.setInt(1, userId);
-                        rolePstmt.executeUpdate();
-                    }
-                }
-            }
-        }
-    }
-
     // View User Accounts
     public List<String> viewUserAccounts() throws SQLException {
         List<String> users = new ArrayList<>();
@@ -255,5 +231,89 @@ public class AdminDAO {
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
         return Character.toUpperCase(str.charAt(0)) + str.substring(1).toLowerCase();
+    }
+
+    public void addUserAccount(String username, String password, String role) throws SQLException {
+        String insertUserSQL = "INSERT INTO User (username, password) VALUES (?, ?)";
+        String getUserIdSQL = "SELECT LAST_INSERT_ID()";
+        String insertRoleSQL = "";
+
+        switch (role) {
+            case "Administrator":
+                insertRoleSQL = "INSERT INTO Administrator (user_id) VALUES (?)";
+                break;
+            case "Receptionist":
+                insertRoleSQL = "INSERT INTO Receptionist (user_id) VALUES (?)";
+                break;
+            case "Housekeeper":
+                insertRoleSQL = "INSERT INTO Housekeeper (user_id) VALUES (?)";
+                break;
+            case "Guest":
+                insertRoleSQL = "INSERT INTO Guest (user_id) VALUES (?)";
+                break;
+            default:
+                throw new SQLException("Invalid role selected.");
+        }
+
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+
+            // Insert into User table
+            int userId;
+            try (PreparedStatement userStmt = conn.prepareStatement(insertUserSQL)) {
+                userStmt.setString(1, username);
+                userStmt.setString(2, password);
+                userStmt.executeUpdate();
+            }
+
+            // Get the last inserted user ID
+            try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getUserIdSQL)) {
+                if (rs.next()) {
+                    userId = rs.getInt(1);
+                } else {
+                    throw new SQLException("Failed to retrieve User ID.");
+                }
+            }
+
+            // Insert into the appropriate role table
+            try (PreparedStatement roleStmt = conn.prepareStatement(insertRoleSQL)) {
+                roleStmt.setInt(1, userId);
+                roleStmt.executeUpdate();
+            }
+
+            conn.commit();
+        } catch (SQLException ex) {
+            throw new SQLException("Error adding user account: " + ex.getMessage());
+        }
+    }
+
+    public List<UserInfo> getAllUserAccounts() throws SQLException {
+        List<UserInfo> users = new ArrayList<>();
+        String sql = "SELECT u.user_id, u.username, " +
+                "CASE " +
+                "WHEN a.user_id IS NOT NULL THEN 'Administrator' " +
+                "WHEN r.user_id IS NOT NULL THEN 'Receptionist' " +
+                "WHEN h.user_id IS NOT NULL THEN 'Housekeeper' " +
+                "WHEN g.user_id IS NOT NULL THEN 'Guest' " +
+                "END AS role " +
+                "FROM User u " +
+                "LEFT JOIN Administrator a ON u.user_id = a.user_id " +
+                "LEFT JOIN Receptionist r ON u.user_id = r.user_id " +
+                "LEFT JOIN Housekeeper h ON u.user_id = h.user_id " +
+                "LEFT JOIN Guest g ON u.user_id = g.user_id";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                users.add(new UserInfo(
+                        rs.getInt("user_id"),
+                        rs.getString("username"),
+                        rs.getString("role")
+                ));
+            }
+        }
+        return users;
     }
 }

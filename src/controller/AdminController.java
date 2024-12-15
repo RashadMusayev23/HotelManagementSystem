@@ -3,8 +3,11 @@ package controller;
 import model.Room;
 import model.dao.AdminDAO;
 import model.info.HotelInfo;
+import model.info.UserInfo;
 import view.admin.AdminAddRoomView;
+import view.admin.AdminAddUserView;
 import view.admin.AdminManageRoomView;
+import view.admin.AdminViewUserAccountsView;
 
 import javax.swing.*;
 import java.sql.SQLException;
@@ -132,6 +135,47 @@ public class AdminController {
         });
 
         dialog.getCancelButton().addActionListener(e -> dialog.dispose());
+        dialog.setVisible(true);
+    }
+
+    public void showAddUserAccountDialog(JFrame parent) {
+        AdminAddUserView dialog = new AdminAddUserView(parent);
+
+        dialog.getAddButton().addActionListener(e -> {
+            try {
+                String username = dialog.getUsername();
+                String password = dialog.getPassword();
+                String role = dialog.getSelectedRole();
+
+                if (username.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Username and password cannot be empty.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                adminDAO.addUserAccount(username, password, role);
+                JOptionPane.showMessageDialog(dialog, "User account created successfully!");
+                dialog.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        dialog.getCancelButton().addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+    }
+
+    public void showViewUserAccountsDialog(JFrame parent) {
+        AdminViewUserAccountsView dialog = new AdminViewUserAccountsView(parent);
+
+        try {
+            List<UserInfo> users = adminDAO.getAllUserAccounts();
+            dialog.updateUserTable(users);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "Error loading user accounts: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        dialog.getCloseButton().addActionListener(e -> dialog.dispose());
         dialog.setVisible(true);
     }
 }
