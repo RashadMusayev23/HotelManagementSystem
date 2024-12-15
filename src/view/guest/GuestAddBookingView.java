@@ -24,6 +24,7 @@ public class GuestAddBookingView extends JDialog {
         add(new JLabel("Guest:"), gbc);
         guestCombo = new JComboBox<>();
         gbc.gridx=1;
+        gbc.weightx = 1.0;
         add(guestCombo, gbc);
 
         // Room Combo
@@ -31,6 +32,7 @@ public class GuestAddBookingView extends JDialog {
         add(new JLabel("Room:"), gbc);
         roomCombo = new JComboBox<>();
         gbc.gridx=1;
+        gbc.weightx = 1.0;
         add(roomCombo, gbc);
 
         // Start Date Spinner
@@ -38,6 +40,7 @@ public class GuestAddBookingView extends JDialog {
         add(new JLabel("Start Date:"), gbc);
         startDateSpinner = createDateSpinner();
         gbc.gridx=1;
+        gbc.weightx = 1.0;
         add(startDateSpinner, gbc);
 
         // End Date Spinner
@@ -45,6 +48,7 @@ public class GuestAddBookingView extends JDialog {
         add(new JLabel("End Date:"), gbc);
         endDateSpinner = createDateSpinner();
         gbc.gridx=1;
+        gbc.weightx = 1.0;
         add(endDateSpinner, gbc);
 
         // Buttons
@@ -58,6 +62,7 @@ public class GuestAddBookingView extends JDialog {
         add(buttonPanel, gbc);
 
         pack();
+        setSize(new Dimension(400, 300));
         setLocationRelativeTo(parent);
     }
 

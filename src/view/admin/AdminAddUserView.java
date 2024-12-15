@@ -22,7 +22,7 @@ public class AdminAddUserView extends JDialog {
         add(passwordField);
 
         add(new JLabel("Role:"));
-        roleComboBox = new JComboBox<>(new String[]{"Administrator", "Receptionist", "Housekeeper", "Guest"});
+        roleComboBox = new JComboBox<>(new String[]{"Receptionist", "Housekeeper", "Guest"});
         add(roleComboBox);
 
         addButton = new JButton("Add");

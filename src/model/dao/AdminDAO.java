@@ -5,6 +5,7 @@ import model.*;
 import model.info.HotelInfo;
 import model.info.UserInfo;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,16 +77,18 @@ public class AdminDAO {
     }
 
     // Add Room
-    public void addRoom(String roomName, String roomType, int maxCapacity, String status, int hotelId) throws SQLException {
-        String sql = "INSERT INTO Room (room_id, room_name, room_type, max_capacity, status, hotel_id) VALUES (NULL, ?, ?, ?, ?, ?)";
+    public void addRoom(String roomName, String roomType, int maxCapacity, String status, int hotelId, int rate, int discount) throws SQLException {
+        String sql = "INSERT INTO Room (room_name, room_type, max_capacity, status, hotel_id, rate, discount) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, roomName);
-            pstmt.setString(2, roomType);
-            pstmt.setInt(3, maxCapacity);
-            pstmt.setString(4, status);
-            pstmt.setInt(5, hotelId);
-            pstmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, roomName);
+            stmt.setString(2, roomType);
+            stmt.setInt(3, maxCapacity);
+            stmt.setString(4, status);
+            stmt.setInt(5, hotelId);
+            stmt.setBigDecimal(6, BigDecimal.valueOf(rate));
+            stmt.setBigDecimal(7, BigDecimal.valueOf(discount));
+            stmt.executeUpdate();
         }
     }
 

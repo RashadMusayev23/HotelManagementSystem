@@ -9,7 +9,9 @@ public class AdminAddRoomView extends JDialog {
     private JComboBox<String> roomTypeCombo;
     private JSpinner maxCapacitySpinner;
     private JComboBox<String> statusCombo;
-    private JComboBox<Object> hotelCombo; // will hold AdminDAO.HotelInfo objects
+    private JComboBox<Object> hotelCombo;
+    private JSpinner rateSpinner;
+    private JSpinner discountSpinner;
 
     private JButton addButton;
     private JButton cancelButton;
@@ -56,6 +58,20 @@ public class AdminAddRoomView extends JDialog {
         gbc.gridx = 1;
         add(hotelCombo, gbc);
 
+        //Rate Spinner
+        gbc.gridx = 0; gbc.gridy = 5;
+        add(new JLabel("Rate:"), gbc);
+        rateSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 5, 1));
+        gbc.gridx = 1;
+        add(rateSpinner, gbc);
+
+        //Discount Spinner
+        gbc.gridx = 0; gbc.gridy = 6;
+        add(new JLabel("Discount:"), gbc);
+        discountSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 10));
+        gbc.gridx = 1;
+        add(discountSpinner, gbc);
+
         // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addButton = new JButton("Add");
@@ -63,7 +79,7 @@ public class AdminAddRoomView extends JDialog {
         buttonPanel.add(cancelButton);
         buttonPanel.add(addButton);
 
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
         add(buttonPanel, gbc);
 
         pack();
@@ -76,6 +92,8 @@ public class AdminAddRoomView extends JDialog {
     public int getMaxCapacity() { return (Integer) maxCapacitySpinner.getValue(); }
     public String getStatus() { return (String) statusCombo.getSelectedItem(); }
     public Object getSelectedHotel() { return hotelCombo.getSelectedItem(); }
+    public int getRate() { return (Integer) rateSpinner.getValue(); }
+    public int getDiscount() { return (Integer) discountSpinner.getValue(); }
 
     public void setHotels(Object[] hotels) {
         // Clear and repopulate

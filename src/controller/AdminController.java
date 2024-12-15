@@ -43,6 +43,8 @@ public class AdminController {
 
             String roomType = dialog.getRoomType();
             int capacity = dialog.getMaxCapacity();
+            int rate = dialog.getRate();
+            int discount = dialog.getDiscount();
             String status = dialog.getStatus();
             Object selectedHotel = dialog.getSelectedHotel();
             if (selectedHotel == null) {
@@ -53,11 +55,21 @@ public class AdminController {
 
             // Attempt to add room
             try {
-                adminDAO.addRoom(roomName, roomType, capacity, status, hotelId);
-                JOptionPane.showMessageDialog(dialog, "Room added successfully!");
-                dialog.dispose();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "DB Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                adminDAO.addRoom(roomName, roomType, capacity, status, hotelId, rate, discount); // Add room to the database
+                JOptionPane.showMessageDialog(parent, "Room added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                // Check for duplicate entry error
+                if (ex.getErrorCode() == 1062) { // MySQL error code for duplicate entry
+                    JOptionPane.showMessageDialog(parent,
+                            "Error: A room with the name '" + roomName + "' already exists. Please choose a different name.",
+                            "Duplicate Room Name",
+                            JOptionPane.WARNING_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(parent,
+                            "An unexpected error occurred: " + ex.getMessage(),
+                            "Database Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
