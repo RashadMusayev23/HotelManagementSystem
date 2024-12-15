@@ -4,7 +4,10 @@ CREATE TABLE Hotel
     hotel_name   VARCHAR(100) NOT NULL,
     location     VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20)  NOT NULL,
-    room_count   INT NOT NULL
+    room_count   INT          NOT NULL,
+    chain_name   VARCHAR(100),
+    star_rating  TINYINT,
+    CONSTRAINT chk_hotel_star_rating CHECK (star_rating BETWEEN 1 AND 5)
 );
 
 CREATE TABLE User
@@ -46,7 +49,13 @@ CREATE TABLE Room
     max_capacity INT          NOT NULL,
     status       VARCHAR(20)  NOT NULL,
     hotel_id     INT          NOT NULL,
-    FOREIGN KEY (hotel_id) REFERENCES Hotel (hotel_id)
+    rate         DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    discount     DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    FOREIGN KEY (hotel_id) REFERENCES Hotel (hotel_id),
+    CONSTRAINT chk_room_discount CHECK (discount >= 0.00 AND discount <= 100.00),
+    CONSTRAINT chk_room_status CHECK (status IN ('Available', 'Booked', 'Maintenance')),
+    CONSTRAINT chk_room_type CHECK (room_type IN ('Single', 'Double', 'Suite')),
+    INDEX idx_room_hotel_id (hotel_id)
 );
 
 CREATE TABLE Booking
@@ -59,7 +68,11 @@ CREATE TABLE Booking
     payment_status VARCHAR(20) NOT NULL,
     status         VARCHAR(50) NOT NULL,
     FOREIGN KEY (guest_id) REFERENCES Guest (user_id),
-    FOREIGN KEY (room_id) REFERENCES Room (room_id)
+    FOREIGN KEY (room_id) REFERENCES Room (room_id),
+    CONSTRAINT chk_booking_status CHECK (status IN ('Requested', 'Pending', 'Confirmed', 'Cancelled', 'Completed')),
+    CONSTRAINT chk_payment_status CHECK (payment_status IN ('Pending', 'Paid', 'Failed')),
+    INDEX idx_booking_guest_id (guest_id),
+    INDEX idx_booking_room_id (room_id)
 );
 
 CREATE TABLE Payment
@@ -69,7 +82,8 @@ CREATE TABLE Payment
     amount         DECIMAL(10, 2) NOT NULL,
     payment_date   DATE           NOT NULL,
     payment_method VARCHAR(50)    NOT NULL,
-    FOREIGN KEY (booking_id) REFERENCES Booking (booking_id)
+    FOREIGN KEY (booking_id) REFERENCES Booking (booking_id),
+    CONSTRAINT chk_payment_amount CHECK (amount > 0)
 );
 
 CREATE TABLE Housekeeping
