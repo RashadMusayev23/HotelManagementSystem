@@ -76,14 +76,33 @@ public class HousekeepingGUI extends JFrame {
 
     private void displayTasks(String title, TaskFetcher fetcher) {
         try {
-            int housekeeperId = promptForInt("Enter Your Housekeeper ID:");
-            List<String[]> tasks = fetcher.fetch(housekeeperId);
-            displayTable(title, tasks, new String[]{"Task ID", "Room ID", "Schedule Date", "Assigned By", "Status"});
+            // Fetch available Housekeeper IDs from the DAO
+            List<Integer> housekeeperIds = dao.getHousekeeperIds();
+
+            if (housekeeperIds.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No housekeepers available.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Create dropdown for Housekeeper IDs
+            JComboBox<Integer> housekeeperBox = new JComboBox<>(housekeeperIds.toArray(new Integer[0]));
+            JPanel panel = new JPanel(new FlowLayout());
+            panel.add(new JLabel("Select Housekeeper ID:"));
+            panel.add(housekeeperBox);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Housekeeper Selection", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                int housekeeperId = (Integer) housekeeperBox.getSelectedItem();
+                List<String[]> tasks = fetcher.fetch(housekeeperId);
+
+                // Display tasks in a table
+                displayTable(title, tasks, new String[]{"Task ID", "Room ID", "Schedule Date", "Assigned By", "Status"});
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
     private void displayTable(String title, List<String[]> data, String[] columnNames) {
         JTable table = new JTable(new DefaultTableModel(data.toArray(new Object[][]{}), columnNames));
         JScrollPane scrollPane = new JScrollPane(table);

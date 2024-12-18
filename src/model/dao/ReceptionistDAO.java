@@ -8,26 +8,77 @@ import java.util.List;
 
 public class ReceptionistDAO {
 
-    // Add a new booking
-    public void addNewBooking(int bookingId, int guestId, int roomId, Date startDate, Date endDate) throws SQLException {
+    public void addNewBooking(int guestId, int roomId, Date startDate, Date endDate) throws SQLException {
         try (Connection conn = DBUtil.getConnection()) {
-            // Check room availability and cleanliness
-            if (!isRoomAvailableForBooking(conn, roomId, startDate, endDate)) {
-                throw new SQLException("Room is not available or already booked for the selected dates.");
-            }
-
-            String sql = "INSERT INTO Booking (booking_id, guest_id, room_id, start_date, end_date, payment_status, status) " +
-                    "VALUES (?, ?, ?, ?, ?, 'Pending', 'Requested')";
+            // Insert the new booking into the Booking table
+            String sql = "INSERT INTO Booking (guest_id, room_id, start_date, end_date, payment_status, status) " +
+                    "VALUES (?, ?, ?, ?, 'Pending', 'Requested')";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, bookingId);
-                pstmt.setInt(2, guestId);
-                pstmt.setInt(3, roomId);
-                pstmt.setDate(4, startDate);
-                pstmt.setDate(5, endDate);
+                pstmt.setInt(1, guestId);
+                pstmt.setInt(2, roomId);
+                pstmt.setDate(3, startDate);
+                pstmt.setDate(4, endDate);
                 pstmt.executeUpdate();
             }
         }
     }
+
+
+    public List<Integer> getGuestIds() throws SQLException {
+        List<Integer> guestIds = new ArrayList<>();
+        String sql = "SELECT user_id FROM Guest";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                guestIds.add(rs.getInt("user_id"));
+            }
+        }
+        return guestIds;
+    }
+
+    public List<Integer> getAvailableRoomIds() throws SQLException {
+        List<Integer> roomIds = new ArrayList<>();
+        String sql = "SELECT room_id FROM Room WHERE status = 'Available'";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                roomIds.add(rs.getInt("room_id"));
+            }
+        }
+        return roomIds;
+    }
+
+
+    // Fetch Room IDs
+    public List<Integer> getRoomIds() throws SQLException {
+        List<Integer> roomIds = new ArrayList<>();
+        String sql = "SELECT room_id FROM Room WHERE status = 'Available'";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                roomIds.add(rs.getInt("room_id"));
+            }
+        }
+        return roomIds;
+    }
+
+    // Fetch Available Booking IDs
+    public List<Integer> getAvailableBookingIds() throws SQLException {
+        List<Integer> bookingIds = new ArrayList<>();
+        String sql = "SELECT MAX(booking_id) + 1 AS next_id FROM Booking";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                bookingIds.add(rs.getInt("next_id"));
+            }
+        }
+        return bookingIds;
+    }
+
 
     // Modify existing booking dates
     public void modifyBooking(int bookingId, Date newStart, Date newEnd) throws SQLException {

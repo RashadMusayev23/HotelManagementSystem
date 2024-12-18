@@ -51,26 +51,52 @@ public class ReceptionistGUI extends JFrame {
         return button;
     }
 
-    // Add New Booking
     private void addBooking() {
         try {
-            int bookingId = promptForInt("Enter Booking ID:");
-            int guestId = promptForInt("Enter Guest ID:");
-            int roomId = promptForInt("Enter Room ID:");
-            Date startDate = promptForDate("Select Check-in Date:");
-            Date endDate = promptForDate("Select Check-out Date:");
+            // Fetch guest IDs and room IDs from the DAO
+            List<Integer> guestIds = dao.getGuestIds();
+            List<Integer> roomIds = dao.getAvailableRoomIds();
 
-            if (endDate.before(startDate)) {
-                showError("Check-out date cannot be before check-in date.");
+            if (guestIds.isEmpty() || roomIds.isEmpty()) {
+                showError("No available guests or rooms.");
                 return;
             }
 
-            dao.addNewBooking(bookingId, guestId, roomId, startDate, endDate);
-            showMessage("Booking successfully added!");
+            // Create dropdowns for Guest and Room IDs
+            JComboBox<Integer> guestBox = new JComboBox<>(guestIds.toArray(new Integer[0]));
+            JComboBox<Integer> roomBox = new JComboBox<>(roomIds.toArray(new Integer[0]));
+
+            // Prompt for Dates
+            Date startDate = promptForDate("Select Check-in Date:");
+            Date endDate = promptForDate("Select Check-out Date:");
+
+            if (startDate == null || endDate == null || endDate.before(startDate)) {
+                showError("Invalid dates: Check-out date cannot be before check-in date.");
+                return;
+            }
+
+            // Build input panel
+            JPanel panel = new JPanel(new GridLayout(3, 2));
+            panel.add(new JLabel("Guest ID:"));
+            panel.add(guestBox);
+            panel.add(new JLabel("Room ID:"));
+            panel.add(roomBox);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Add New Booking", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                int guestId = (Integer) guestBox.getSelectedItem();
+                int roomId = (Integer) roomBox.getSelectedItem();
+
+                // Add booking using DAO
+                dao.addNewBooking(guestId, roomId, startDate, endDate);
+                showMessage("Booking added successfully!");
+            }
         } catch (Exception ex) {
             showError("Error while adding booking: " + ex.getMessage());
         }
     }
+
+
 
     // Modify Existing Booking
     private void modifyBooking() {

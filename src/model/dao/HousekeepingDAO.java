@@ -39,6 +39,21 @@ public class HousekeepingDAO {
         return fetchTasksWithReceptionist(VIEW_PENDING_TASKS_SQL, housekeeperId);
     }
 
+    public List<Integer> getHousekeeperIds() throws SQLException {
+        List<Integer> housekeeperIds = new ArrayList<>();
+        String sql = "SELECT user_id FROM Housekeeper";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                housekeeperIds.add(rs.getInt("user_id"));
+            }
+        }
+        return housekeeperIds;
+    }
+
+
     public List<String[]> getCompletedTasks(int housekeeperId) throws SQLException {
         return fetchSimpleTasks(VIEW_COMPLETED_TASKS_SQL, housekeeperId);
     }
