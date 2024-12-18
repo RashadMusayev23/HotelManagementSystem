@@ -2,6 +2,10 @@ package model;
 
 import java.sql.Date;
 
+/*
+ * Simple model class for Housekeeping tasks.
+ * You can integrate this with the DAO if needed.
+ */
 public class Housekeeping {
     private int housekeepingId;
     private int roomId;

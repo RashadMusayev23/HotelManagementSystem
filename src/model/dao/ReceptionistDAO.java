@@ -1,27 +1,35 @@
 package model.dao;
 
 import db.DBUtil;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ReceptionistDAO {
-    // Add New Booking (similar to Guest but Receptionist can directly confirm or modify)
+
+    // Add a new booking
     public void addNewBooking(int bookingId, int guestId, int roomId, Date startDate, Date endDate) throws SQLException {
-        String sql = "INSERT INTO Booking (booking_id, guest_id, room_id, start_date, end_date, payment_status, status) " +
-                     "VALUES (?, ?, ?, ?, ?, 'Pending', 'Booked')";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, bookingId);
-            pstmt.setInt(2, guestId);
-            pstmt.setInt(3, roomId);
-            pstmt.setDate(4, startDate);
-            pstmt.setDate(5, endDate);
-            pstmt.executeUpdate();
+        try (Connection conn = DBUtil.getConnection()) {
+            // Check room availability and cleanliness
+            if (!isRoomAvailableForBooking(conn, roomId, startDate, endDate)) {
+                throw new SQLException("Room is not available or already booked for the selected dates.");
+            }
+
+            String sql = "INSERT INTO Booking (booking_id, guest_id, room_id, start_date, end_date, payment_status, status) " +
+                    "VALUES (?, ?, ?, ?, ?, 'Pending', 'Requested')";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, bookingId);
+                pstmt.setInt(2, guestId);
+                pstmt.setInt(3, roomId);
+                pstmt.setDate(4, startDate);
+                pstmt.setDate(5, endDate);
+                pstmt.executeUpdate();
+            }
         }
     }
 
-    // Modify Booking (Dates)
+    // Modify existing booking dates
     public void modifyBooking(int bookingId, Date newStart, Date newEnd) throws SQLException {
         String sql = "UPDATE Booking SET start_date = ?, end_date = ? WHERE booking_id = ?";
         try (Connection conn = DBUtil.getConnection();
@@ -33,7 +41,7 @@ public class ReceptionistDAO {
         }
     }
 
-    // Delete Booking
+    // Delete a booking
     public void deleteBooking(int bookingId) throws SQLException {
         String sql = "DELETE FROM Booking WHERE booking_id = ?";
         try (Connection conn = DBUtil.getConnection();
@@ -43,48 +51,67 @@ public class ReceptionistDAO {
         }
     }
 
-    // View Bookings
-    public List<String> viewBookings() throws SQLException {
-        List<String> bookings = new ArrayList<>();
-        String sql = "SELECT booking_id, guest_id, room_id, status FROM Booking";
+    // View all bookings
+    public List<String[]> viewBookings() throws SQLException {
+        List<String[]> bookings = new ArrayList<>();
+        String sql = "SELECT booking_id, guest_id, room_id, start_date, end_date, status FROM Booking";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                bookings.add("Booking ID: " + rs.getInt("booking_id") +
-                             ", Guest ID: " + rs.getInt("guest_id") +
-                             ", Room ID: " + rs.getInt("room_id") +
-                             ", Status: " + rs.getString("status"));
+                bookings.add(new String[]{
+                        String.valueOf(rs.getInt("booking_id")),
+                        String.valueOf(rs.getInt("guest_id")),
+                        String.valueOf(rs.getInt("room_id")),
+                        rs.getDate("start_date").toString(),
+                        rs.getDate("end_date").toString(),
+                        rs.getString("status")
+                });
             }
         }
         return bookings;
     }
 
-    // Process Payment (Mark a booking as paid)
-    public void processPayment(int bookingId, double amount, String paymentMethod) throws SQLException {
-        String insertPayment = "INSERT INTO Payment (payment_id, booking_id, amount, payment_date, payment_method) " +
-                               "VALUES (NULL, ?, ?, CURDATE(), ?)";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(insertPayment)) {
-            pstmt.setInt(1, bookingId);
-            pstmt.setDouble(2, amount);
-            pstmt.setString(3, paymentMethod);
-            pstmt.executeUpdate();
-            // Mark booking payment_status as Paid
-            String updateBooking = "UPDATE Booking SET payment_status = 'Paid' WHERE booking_id = ?";
-            try (PreparedStatement ubPstmt = conn.prepareStatement(updateBooking)) {
-                ubPstmt.setInt(1, bookingId);
-                ubPstmt.executeUpdate();
+    // Process Payment
+    public void processPayment(int bookingId, double amount, String method) throws SQLException {
+        try (Connection conn = DBUtil.getConnection()) {
+            // Check if booking exists and is unpaid
+            String checkSql = "SELECT payment_status FROM Booking WHERE booking_id = ?";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, bookingId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (!rs.next()) throw new SQLException("Booking not found.");
+                    if ("Paid".equals(rs.getString("payment_status"))) {
+                        throw new SQLException("Payment has already been processed for this booking.");
+                    }
+                }
+            }
+
+            // Insert payment record
+            String paymentSql = "INSERT INTO Payment (booking_id, amount, payment_date, payment_method) VALUES (?, ?, CURDATE(), ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(paymentSql)) {
+                pstmt.setInt(1, bookingId);
+                pstmt.setDouble(2, amount);
+                pstmt.setString(3, method);
+                pstmt.executeUpdate();
+            }
+
+            // Update booking payment status
+            String updateSql = "UPDATE Booking SET payment_status = 'Paid' WHERE booking_id = ?";
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                updateStmt.setInt(1, bookingId);
+                updateStmt.executeUpdate();
             }
         }
     }
 
-    // Assign Housekeeping Task
-    public void assignHousekeepingTask(int housekeepingId, int roomId, Date scheduleDate, int housekeeperId) throws SQLException {
-        String sql = "INSERT INTO Housekeeping (housekeeping_id, room_id, cleaned_status, schedule_date, housekeeper_id) VALUES (?, ?, 'Pending', ?, ?)";
+    // Assign housekeeping task
+    public void assignHousekeepingTask(int taskId, int roomId, Date scheduleDate, int housekeeperId) throws SQLException {
+        String sql = "INSERT INTO Housekeeping (housekeeping_id, room_id, cleaned_status, schedule_date, housekeeper_id) " +
+                "VALUES (?, ?, 'Pending', ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, housekeepingId);
+            pstmt.setInt(1, taskId);
             pstmt.setInt(2, roomId);
             pstmt.setDate(3, scheduleDate);
             pstmt.setInt(4, housekeeperId);
@@ -92,30 +119,38 @@ public class ReceptionistDAO {
         }
     }
 
-    // View All Housekeepers Records and Their Availability
-    public void viewAllHousekeepers() throws SQLException {
-        // Show housekeepers and their scheduled tasks
-        String sql = "SELECT u.username, h.user_id FROM Housekeeper h JOIN User u ON h.user_id = u.user_id";
+    // View all housekeepers and their tasks
+    public List<String[]> viewAllHousekeepers() throws SQLException {
+        List<String[]> results = new ArrayList<>();
+        String sql = "SELECT u.username, h.housekeeping_id, h.room_id, h.cleaned_status, h.schedule_date " +
+                "FROM Housekeeping h JOIN User u ON h.housekeeper_id = u.user_id";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                int housekeeperId = rs.getInt("user_id");
-                System.out.println("Housekeeper: " + rs.getString("username") + " (ID: " + housekeeperId + ")");
-                // Check their tasks
-                String taskSql = "SELECT housekeeping_id, room_id, cleaned_status, schedule_date FROM Housekeeping WHERE housekeeper_id = ?";
-                try (PreparedStatement tPstmt = conn.prepareStatement(taskSql)) {
-                    tPstmt.setInt(1, housekeeperId);
-                    try (ResultSet trs = tPstmt.executeQuery()) {
-                        while (trs.next()) {
-                            System.out.println("  Task: " + trs.getInt("housekeeping_id") +
-                                               ", Room: " + trs.getInt("room_id") +
-                                               ", Status: " + trs.getString("cleaned_status") +
-                                               ", Date: " + trs.getDate("schedule_date"));
-                        }
-                    }
-                }
+                results.add(new String[]{
+                        rs.getString("username"),
+                        String.valueOf(rs.getInt("housekeeping_id")),
+                        String.valueOf(rs.getInt("room_id")),
+                        rs.getString("cleaned_status"),
+                        rs.getDate("schedule_date").toString()
+                });
             }
         }
+        return results;
+    }
+
+    // Helper method to check room availability
+    private boolean isRoomAvailableForBooking(Connection conn, int roomId, Date startDate, Date endDate) throws SQLException {
+        String sql = "SELECT COUNT(*) AS cnt FROM Booking WHERE room_id = ? AND NOT (end_date <= ? OR start_date >= ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, roomId);
+            pstmt.setDate(2, startDate);
+            pstmt.setDate(3, endDate);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("cnt") == 0;
+            }
+        }
+        return false;
     }
 }

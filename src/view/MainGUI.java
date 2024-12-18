@@ -1,9 +1,10 @@
 package view;
 
+import controller.AdminController;
 import controller.GuestController;
+import model.dao.AdminDAO;
 import model.dao.GuestDAO;
-import view.admin.AdminGUI;
-import view.guest.GuestGUI;
+import view.admin.AdminMainView;
 import view.guest.GuestMenuView;
 import view.housekeeping.HousekeepingGUI;
 import view.receptionist.ReceptionistGUI;
@@ -38,11 +39,11 @@ public class MainGUI extends JFrame {
 
         // Action listeners
         guestButton.addActionListener(e -> {
-            new GuestGUI().setVisible(true);
+            new GuestMenuView(new GuestController(new GuestDAO())).setVisible(true);
         });
 
         adminButton.addActionListener(e -> {
-            new AdminGUI().setVisible(true);
+            new AdminMainView(new AdminController(new AdminDAO())).setVisible(true);
         });
 
         receptionistButton.addActionListener(e -> {
@@ -60,12 +61,8 @@ public class MainGUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GuestMenuView main = new GuestMenuView(new GuestController(new GuestDAO()));
+            MainGUI main = new MainGUI();
             main.setVisible(true);
-//            AdminMainView main = new AdminMainView(new AdminController(new AdminDAO()));
-//            main.setVisible(true);
-//            MainGUI main = new MainGUI();
-//            main.setVisible(true);
         });
     }
 }

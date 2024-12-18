@@ -5,7 +5,8 @@ import model.dao.ReceptionistDAO;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Date;
-import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 public class ReceptionistGUI extends JFrame {
@@ -16,19 +17,22 @@ public class ReceptionistGUI extends JFrame {
     public ReceptionistGUI() {
         super("Receptionist Menu");
         dao = new ReceptionistDAO();
-        setLayout(new GridLayout(8,1,10,10));
+
+        setLayout(new GridLayout(8, 1, 10, 10));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        addBookingButton = new JButton("Add New Booking");
-        modifyBookingButton = new JButton("Modify Booking");
-        deleteBookingButton = new JButton("Delete Booking");
-        viewBookingsButton = new JButton("View Bookings");
-        processPaymentButton = new JButton("Process Payment");
-        assignHkTaskButton = new JButton("Assign Housekeeping Task");
-        viewHkRecordsButton = new JButton("View Housekeepers & Their Tasks");
-        exitButton = new JButton("Exit");
+        // Initialize buttons
+        addBookingButton = createButton("Add New Booking", e -> addBooking());
+        modifyBookingButton = createButton("Modify Booking", e -> modifyBooking());
+        deleteBookingButton = createButton("Delete Booking", e -> deleteBooking());
+        viewBookingsButton = createButton("View Bookings", e -> viewBookings());
+        processPaymentButton = createButton("Process Payment", e -> processPayment());
+        assignHkTaskButton = createButton("Assign Housekeeping Task", e -> assignHousekeepingTask());
+        viewHkRecordsButton = createButton("View Housekeepers & Tasks", e -> viewHousekeepers());
+        exitButton = createButton("Exit", e -> dispose());
 
+        // Add buttons to GUI
         add(addBookingButton);
         add(modifyBookingButton);
         add(deleteBookingButton);
@@ -38,101 +42,194 @@ public class ReceptionistGUI extends JFrame {
         add(viewHkRecordsButton);
         add(exitButton);
 
-        addBookingButton.addActionListener(e -> addBooking());
-        modifyBookingButton.addActionListener(e -> modifyBooking());
-        deleteBookingButton.addActionListener(e -> deleteBooking());
-        viewBookingsButton.addActionListener(e -> viewBookings());
-        processPaymentButton.addActionListener(e -> processPayment());
-        assignHkTaskButton.addActionListener(e -> assignHousekeepingTask());
-        viewHkRecordsButton.addActionListener(e -> viewHousekeepers());
-        exitButton.addActionListener(e -> dispose());
-
         pack();
     }
 
+    private JButton createButton(String text, java.awt.event.ActionListener action) {
+        JButton button = new JButton(text);
+        button.addActionListener(action);
+        return button;
+    }
+
+    // Add New Booking
     private void addBooking() {
         try {
-            int bookingId = Integer.parseInt(JOptionPane.showInputDialog(this, "Booking ID:"));
-            int guestId = Integer.parseInt(JOptionPane.showInputDialog(this, "Guest ID:"));
-            int roomId = Integer.parseInt(JOptionPane.showInputDialog(this, "Room ID:"));
-            Date sd = Date.valueOf(JOptionPane.showInputDialog(this, "Start Date (YYYY-MM-DD):"));
-            Date ed = Date.valueOf(JOptionPane.showInputDialog(this, "End Date (YYYY-MM-DD):"));
-            dao.addNewBooking(bookingId, guestId, roomId, sd, ed);
-            JOptionPane.showMessageDialog(this, "Booking added!");
+            int bookingId = promptForInt("Enter Booking ID:");
+            int guestId = promptForInt("Enter Guest ID:");
+            int roomId = promptForInt("Enter Room ID:");
+            Date startDate = promptForDate("Select Check-in Date:");
+            Date endDate = promptForDate("Select Check-out Date:");
+
+            if (endDate.before(startDate)) {
+                showError("Check-out date cannot be before check-in date.");
+                return;
+            }
+
+            dao.addNewBooking(bookingId, guestId, roomId, startDate, endDate);
+            showMessage("Booking successfully added!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showError("Error while adding booking: " + ex.getMessage());
         }
     }
 
+    // Modify Existing Booking
     private void modifyBooking() {
         try {
-            int bookingId = Integer.parseInt(JOptionPane.showInputDialog(this, "Booking ID:"));
-            Date sd = Date.valueOf(JOptionPane.showInputDialog(this, "New Start Date (YYYY-MM-DD):"));
-            Date ed = Date.valueOf(JOptionPane.showInputDialog(this, "New End Date (YYYY-MM-DD):"));
-            dao.modifyBooking(bookingId, sd, ed);
-            JOptionPane.showMessageDialog(this, "Booking modified!");
+            int bookingId = promptForInt("Enter Booking ID:");
+            Date newStart = promptForDate("Select New Start Date:");
+            Date newEnd = promptForDate("Select New End Date:");
+
+            if (newEnd.before(newStart)) {
+                showError("End date cannot be before start date.");
+                return;
+            }
+
+            dao.modifyBooking(bookingId, newStart, newEnd);
+            showMessage("Booking modified successfully!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showError("Error while modifying booking: " + ex.getMessage());
         }
     }
 
+    // Delete a Booking
     private void deleteBooking() {
         try {
-            int bookingId = Integer.parseInt(JOptionPane.showInputDialog(this, "Booking ID:"));
+            int bookingId = promptForInt("Enter Booking ID to Delete:");
             dao.deleteBooking(bookingId);
-            JOptionPane.showMessageDialog(this, "Booking deleted!");
+            showMessage("Booking deleted successfully!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showError("Error while deleting booking: " + ex.getMessage());
         }
     }
 
+    // View Bookings
     private void viewBookings() {
         try {
-            List<String> bookings = dao.viewBookings();
+            List<String[]> bookings = dao.viewBookings();
             if (bookings.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "No bookings found.");
+                showMessage("No bookings found.");
             } else {
-                StringBuilder sb = new StringBuilder("Bookings:\n");
-                for (String b : bookings) sb.append(b).append("\n");
-                JOptionPane.showMessageDialog(this, sb.toString());
+                displayTable("Bookings", bookings, new String[]{"Booking ID", "Guest ID", "Room ID", "Start Date", "End Date", "Status"});
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "DB Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            showError("Error while viewing bookings: " + ex.getMessage());
         }
     }
 
+    // Process Payment
     private void processPayment() {
         try {
-            int bookingId = Integer.parseInt(JOptionPane.showInputDialog(this, "Booking ID:"));
-            double amt = Double.parseDouble(JOptionPane.showInputDialog(this, "Amount:"));
-            String method = JOptionPane.showInputDialog(this, "Payment Method:");
-            dao.processPayment(bookingId, amt, method);
-            JOptionPane.showMessageDialog(this, "Payment processed!");
+            int bookingId = promptForInt("Enter Booking ID:");
+            double amount = promptForDouble("Enter Payment Amount:");
+            String[] methods = {"Credit Card", "Cash", "Debit Card"};
+            String method = (String) JOptionPane.showInputDialog(this, "Select Payment Method:",
+                    "Payment Method", JOptionPane.PLAIN_MESSAGE, null, methods, methods[0]);
+
+            if (method == null) return;
+
+            dao.processPayment(bookingId, amount, method);
+            showMessage("Payment processed successfully!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showError("Error while processing payment: " + ex.getMessage());
         }
     }
 
+    // Assign Housekeeping Task
     private void assignHousekeepingTask() {
         try {
-            int hkid = Integer.parseInt(JOptionPane.showInputDialog(this, "Housekeeping Task ID:"));
-            int roomId = Integer.parseInt(JOptionPane.showInputDialog(this, "Room ID:"));
-            Date schDate = Date.valueOf(JOptionPane.showInputDialog(this, "Schedule Date (YYYY-MM-DD):"));
-            int hkUserId = Integer.parseInt(JOptionPane.showInputDialog(this, "Housekeeper ID:"));
-            dao.assignHousekeepingTask(hkid, roomId, schDate, hkUserId);
-            JOptionPane.showMessageDialog(this, "Task assigned!");
+            int taskId = promptForInt("Enter Task ID:");
+            int roomId = promptForInt("Enter Room ID:");
+            Date scheduleDate = promptForDate("Select Schedule Date:");
+            int housekeeperId = promptForInt("Enter Housekeeper ID:");
+
+            dao.assignHousekeepingTask(taskId, roomId, scheduleDate, housekeeperId);
+            showMessage("Housekeeping task assigned successfully!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            showError("Error while assigning housekeeping task: " + ex.getMessage());
         }
     }
 
     private void viewHousekeepers() {
         try {
-            System.out.println("Housekeepers Records:");
-            dao.viewAllHousekeepers();
-            JOptionPane.showMessageDialog(this, "Check console for housekeeper records. (Enhance DAO for direct GUI display)");
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "DB Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            // Fetch housekeeper records
+            List<String[]> housekeepers = dao.viewAllHousekeepers();
+
+            if (housekeepers.isEmpty()) {
+                showMessage("No housekeeper records found.");
+            } else {
+                // Define column names for JTable
+                String[] columnNames = {"Housekeeper Name", "Task ID", "Room ID", "Status", "Scheduled Date"};
+
+                // Display records in a JTable
+                displayTable("Housekeepers & Their Tasks", housekeepers, columnNames);
+            }
+        } catch (Exception ex) {
+            showError("Error while retrieving housekeeper records: " + ex.getMessage());
         }
+    }
+
+    private Date promptForDate(String title) {
+        LocalDate today = LocalDate.now();
+        JComboBox<Integer> yearBox = new JComboBox<>();
+        JComboBox<Integer> monthBox = new JComboBox<>();
+        JComboBox<Integer> dayBox = new JComboBox<>();
+
+        for (int y = today.getYear(); y <= today.getYear() + 5; y++) yearBox.addItem(y);
+        for (int m = 1; m <= 12; m++) monthBox.addItem(m);
+
+        JPanel panel = new JPanel(new FlowLayout());
+        panel.add(new JLabel("Year:"));
+        panel.add(yearBox);
+        panel.add(new JLabel("Month:"));
+        panel.add(monthBox);
+        panel.add(new JLabel("Day:"));
+        panel.add(dayBox);
+
+        yearBox.addActionListener(e -> refreshDays(yearBox, monthBox, dayBox));
+        monthBox.addActionListener(e -> refreshDays(yearBox, monthBox, dayBox));
+        refreshDays(yearBox, monthBox, dayBox);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, title, JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            int year = (Integer) yearBox.getSelectedItem();
+            int month = (Integer) monthBox.getSelectedItem();
+            int day = (Integer) dayBox.getSelectedItem();
+            return Date.valueOf(LocalDate.of(year, month, day));
+        }
+        return null;
+    }
+
+    private void refreshDays(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, JComboBox<Integer> dayBox) {
+        dayBox.removeAllItems();
+        int year = (Integer) yearBox.getSelectedItem();
+        int month = (Integer) monthBox.getSelectedItem();
+        for (int d = 1; d <= YearMonth.of(year, month).lengthOfMonth(); d++) {
+            dayBox.addItem(d);
+        }
+    }
+
+    private void displayTable(String title, List<String[]> data, String[] columns) {
+        JTable table = new JTable(data.toArray(new Object[0][0]), columns);
+        JOptionPane.showMessageDialog(this, new JScrollPane(table), title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private int promptForInt(String message) {
+        return Integer.parseInt(JOptionPane.showInputDialog(this, message));
+    }
+
+    private double promptForDouble(String message) {
+        return Double.parseDouble(JOptionPane.showInputDialog(this, message));
+    }
+
+    private void showMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
+    private void showError(String error) {
+        JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new ReceptionistGUI().setVisible(true));
     }
 }
